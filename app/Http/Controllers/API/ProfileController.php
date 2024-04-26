@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
+use Illuminate\Validation\Rules\Password;
 
 
 class ProfileController extends BaseController
@@ -73,7 +74,7 @@ class ProfileController extends BaseController
     public function passwordChange(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'password' => 'required|string|min:6|confirmed',
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         if($validator->fails()){
