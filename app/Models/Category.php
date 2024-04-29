@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Testimonial extends Model
+class Category extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -16,9 +16,9 @@ class Testimonial extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'project_id',
-        'customer_name',
-        'message',
+        'name',
+        'slug',
+        'description',
     ];
 
     /**
@@ -32,4 +32,5 @@ class Testimonial extends Model
             'deleted_at' => 'datetime',
         ];
     }
+
 }

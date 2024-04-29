@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('project_name', 100);
             $table->string('description', 200)->nullable();
             $table->string('images', 100);
+            $table->string('thumbnail', 100);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

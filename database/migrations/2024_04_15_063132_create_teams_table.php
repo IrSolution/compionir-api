@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('education')->nullable();
             $table->string('certification')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
