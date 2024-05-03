@@ -3,35 +3,36 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
-use App\Models\Project;
+use App\Models\User;
 
-class ProjectController extends BaseController
+class UserController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $projects = Project::query();
+        $users = User::query();
         if ($search = $request->input('search')) {
-            $projects->where('project_name', 'like', '%' . $search . '%')
-            ->orWhere('description', 'like', '%' . $search . '%');
+            $users->where('name', 'like', '%' . $search . '%')
+            ->orWhere('email', 'like', '%' . $search . '%');
         }
 
         if ($sort = $request->input('sort') ?? 'id') {
-            $projects->orderBy($sort);
+            $users->orderBy($sort);
         }
 
         if ($order = $request->input('order') ?? 'asc') {
-            $projects->orderBy('id', $order);
+            $users->orderBy('id', $order);
         }
 
         $perPage = $request->input('per_page') ?? 10;
         $page = $request->input('page', 1);
 
-        $result = $projects->paginate($perPage, ['*'], 'page', $page);
+        $result = $users->paginate($perPage, ['*'], 'page', $page);
 
-        return $this->sendResponse($result, 'Projects retrieved successfully.');
+        return $this->sendResponse($result, 'Users retrieved successfully.');
+
     }
 
     /**

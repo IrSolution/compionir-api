@@ -53,13 +53,25 @@ class ProfileController extends BaseController
     {
         $user = auth()->user();
         if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
+            if ($user->avatar && $user->thumbnail) {
                 \Storage::delete('public/'.$user->avatar);
+                \Storage::delete('public/'.$user->thumbnail);
             }
             $avatar = $request->file('avatar');
-            $filename = time() . '.' . $avatar->getClientOriginalExtension();
+            $originalName = $avatar->getClientOriginalName();
+            $ext = $avatar->getClientOriginalExtension();
+
+            $filename = time() . '-avatar' . '.' . $ext;
+            $fileThumbnail = time() . '-avatar-thumbnail' . '.' . $ext;
+
             $path = $request->file('avatar')->storeAs('avatars', $filename, 'public');
+            $pathThumbnail = $request->file('avatar')->storeAs('avatars/thumbnail', $fileThumbnail, 'public');
+
+            $smallthumbnailpath = public_path('storage/avatars/thumbnail/'.$fileThumbnail);
+            $this->createThumbnail($smallthumbnailpath, 150, 93);
+
             $user->avatar = $path;
+            $user->thumbnail = $pathThumbnail;
         }
         $user->save();
         return $this->sendResponse($user, 'Avatar updated successfully.');

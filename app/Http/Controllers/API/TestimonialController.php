@@ -2,17 +2,36 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Testimonial;
 
-class TestimonialController extends Controller
+class TestimonialController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $testimonilas = Testimonial::query();
+        if ($search = $request->input('search')) {
+            $testimonilas->where('customer_name', 'like', '%' . $search . '%')
+            ->orWhere('message', 'like', '%' . $search . '%');
+        }
+
+        if ($sort = $request->input('sort') ?? 'id') {
+            $testimonilas->orderBy($sort);
+        }
+
+        if ($order = $request->input('order') ?? 'asc') {
+            $testimonilas->orderBy('id', $order);
+        }
+
+        $perPage = $request->input('per_page') ?? 10;
+        $page = $request->input('page', 1);
+
+        $result = $testimonilas->paginate($perPage, ['*'], 'page', $page);
+
+        return $this->sendResponse($result, 'Testimonial retrieved successfully.');
     }
 
     /**

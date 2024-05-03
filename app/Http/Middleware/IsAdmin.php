@@ -15,7 +15,9 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        abort_unless(auth()->user()->isAdmin, 403, 'Sorry, you are unauthorized to view this source.');
+        if (\Auth::user()->role != 'admin') {
+            return response()->json('Sorry, you are unauthorized to view this source.');
+        }
         return $next($request);
     }
 }

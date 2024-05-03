@@ -3,35 +3,34 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
-use App\Models\Project;
+use App\Models\Tag;
 
-class ProjectController extends BaseController
+class TagController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $projects = Project::query();
+        $tags = Tag::query();
         if ($search = $request->input('search')) {
-            $projects->where('project_name', 'like', '%' . $search . '%')
-            ->orWhere('description', 'like', '%' . $search . '%');
+            $tags->where('title', 'like', '%' . $search . '%');
         }
 
         if ($sort = $request->input('sort') ?? 'id') {
-            $projects->orderBy($sort);
+            $tags->orderBy($sort);
         }
 
         if ($order = $request->input('order') ?? 'asc') {
-            $projects->orderBy('id', $order);
+            $tags->orderBy('id', $order);
         }
 
         $perPage = $request->input('per_page') ?? 10;
         $page = $request->input('page', 1);
 
-        $result = $projects->paginate($perPage, ['*'], 'page', $page);
+        $result = $tags->paginate($perPage, ['*'], 'page', $page);
 
-        return $this->sendResponse($result, 'Projects retrieved successfully.');
+        return $this->sendResponse($result, 'Tags retrieved successfully.');
     }
 
     /**

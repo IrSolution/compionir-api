@@ -2,17 +2,37 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Service;
 
-class ServiceController extends Controller
+class ServiceController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $services = Service::query();
+        if ($search = $request->input('search')) {
+            $services->where('name', 'like', '%' . $search . '%')
+            ->orWhere('position', 'like', '%' . $search . '%')
+            ->orWhere('message', 'like', '%' . $search . '%');
+        }
+
+        if ($sort = $request->input('sort') ?? 'id') {
+            $services->orderBy($sort);
+        }
+
+        if ($order = $request->input('order') ?? 'asc') {
+            $services->orderBy('id', $order);
+        }
+
+        $perPage = $request->input('per_page') ?? 10;
+        $page = $request->input('page', 1);
+
+        $result = $services->paginate($perPage, ['*'], 'page', $page);
+
+        return $this->sendResponse($result, 'Services retrieved successfully.');
     }
 
     /**

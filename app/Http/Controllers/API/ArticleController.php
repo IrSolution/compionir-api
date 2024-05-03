@@ -2,17 +2,36 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Article;
 
-class ArticleController extends Controller
+class ArticleController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $articles = Article::query();
+        if ($search = $request->input('search')) {
+            $articles->where('title', 'like', '%' . $search . '%')
+            ->orWhere('slug', 'like', '%' . $search . '%');
+        }
+
+        if ($sort = $request->input('sort') ?? 'id') {
+            $articles->orderBy($sort);
+        }
+
+        if ($order = $request->input('order') ?? 'asc') {
+            $articles->orderBy('id', $order);
+        }
+
+        $perPage = $request->input('per_page') ?? 10;
+        $page = $request->input('page', 1);
+
+        $result = $articles->paginate($perPage, ['*'], 'page', $page);
+
+        return $this->sendResponse($result, 'Articles retrieved successfully.');
     }
 
     /**

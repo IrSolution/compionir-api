@@ -2,17 +2,37 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Team;
 
-class TeamController extends Controller
+class TeamController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $teams = Team::query();
+        if ($search = $request->input('search')) {
+            $teams->where('name', 'like', '%' . $search . '%')
+            ->orWhere('position', 'like', '%' . $search . '%')
+            ->orWhere('message', 'like', '%' . $search . '%');
+        }
+
+        if ($sort = $request->input('sort') ?? 'id') {
+            $teams->orderBy($sort);
+        }
+
+        if ($order = $request->input('order') ?? 'asc') {
+            $teams->orderBy('id', $order);
+        }
+
+        $perPage = $request->input('per_page') ?? 10;
+        $page = $request->input('page', 1);
+
+        $result = $teams->paginate($perPage, ['*'], 'page', $page);
+
+        return $this->sendResponse($result, 'Teams retrieved successfully.');
     }
 
     /**

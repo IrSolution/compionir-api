@@ -4,6 +4,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\ArticleController;
+use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\ServiceController;
+use App\Http\Controllers\API\SettingController;
+use App\Http\Controllers\API\TestimonialController;
+use App\Http\Controllers\API\TeamController;
+use App\Http\Controllers\API\TagController;
+use App\Http\Controllers\API\ContactController;
+use App\Http\Controllers\API\ProjectController;
 
 Route::controller(AuthController::class)->group(function() {
     Route::post('register', 'register');

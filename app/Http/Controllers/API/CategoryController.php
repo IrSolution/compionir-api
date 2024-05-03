@@ -3,35 +3,35 @@
 namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
-use App\Models\Project;
+use App\Models\Category;
 
-class ProjectController extends BaseController
+class CategoryController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $projects = Project::query();
+        $categories = Category::query();
         if ($search = $request->input('search')) {
-            $projects->where('project_name', 'like', '%' . $search . '%')
+            $categories->where('name', 'like', '%' . $search . '%')
             ->orWhere('description', 'like', '%' . $search . '%');
         }
 
         if ($sort = $request->input('sort') ?? 'id') {
-            $projects->orderBy($sort);
+            $categories->orderBy($sort);
         }
 
         if ($order = $request->input('order') ?? 'asc') {
-            $projects->orderBy('id', $order);
+            $categories->orderBy('id', $order);
         }
 
         $perPage = $request->input('per_page') ?? 10;
         $page = $request->input('page', 1);
 
-        $result = $projects->paginate($perPage, ['*'], 'page', $page);
+        $result = $categories->paginate($perPage, ['*'], 'page', $page);
 
-        return $this->sendResponse($result, 'Projects retrieved successfully.');
+        return $this->sendResponse($result, 'Categories retrieved successfully.');
     }
 
     /**

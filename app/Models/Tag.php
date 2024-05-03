@@ -30,4 +30,9 @@ class Tag extends Model
             'deleted_at' => 'datetime',
         ];
     }
+
+    public function articles()
+    {
+        return $this->belongsToMany(Article::class, 'article_tags', 'tag_id', 'article_id');
+    }
 }

@@ -2,17 +2,36 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Contact;
 
-class ContactController extends Controller
+class ContactController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $contacts = Contact::query();
+        if ($search = $request->input('search')) {
+            $contacts->where('name', 'like', '%' . $search . '%')
+            ->orWhere('message', 'like', '%' . $search . '%');
+        }
+
+        if ($sort = $request->input('sort') ?? 'id') {
+            $contacts->orderBy($sort);
+        }
+
+        if ($order = $request->input('order') ?? 'asc') {
+            $contacts->orderBy('id', $order);
+        }
+
+        $perPage = $request->input('per_page') ?? 10;
+        $page = $request->input('page', 1);
+
+        $result = $contacts->paginate($perPage, ['*'], 'page', $page);
+
+        return $this->sendResponse($result, 'Contacts retrieved successfully.');
     }
 
     /**
