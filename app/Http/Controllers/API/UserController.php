@@ -36,19 +36,50 @@ class UserController extends BaseController
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+            'avatar' => ['image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role ?? 'user',
+        ]);
+
+        if ($request->hasFile('avatar')) {
+
+            $avatar = $request->file('avatar');
+            $originalName = $avatar->getClientOriginalName();
+            $ext = $avatar->getClientOriginalExtension();
+
+            $filename = time() . '-avatar' . '.' . $ext;
+            $fileThumbnail = time() . '-avatar-thumbnail' . '.' . $ext;
+
+            $path = $request->file('avatar')->storeAs('avatars', $filename, 'public');
+            $pathThumbnail = $request->file('avatar')->storeAs('avatars/thumbnail', $fileThumbnail, 'public');
+
+            $smallthumbnailpath = public_path('storage/avatars/thumbnail/'.$fileThumbnail);
+            $this->createThumbnail($smallthumbnailpath, 150, 93);
+
+            $user->avatar = $path;
+            $user->thumbnail = $pathThumbnail;
+
+            $user->save();
+        }
+
+        return $this->sendResponse($user, 'User created successfully.');
     }
 
     /**
@@ -56,15 +87,8 @@ class UserController extends BaseController
      */
     public function show(string $id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        $user = User::find($id);
+        return $this->sendResponse($user, 'User retrieved successfully.');
     }
 
     /**
@@ -72,7 +96,44 @@ class UserController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'avatar' => ['image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $user = User::find($id);
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && $user->thumbnail) {
+                \Storage::delete('public/'.$user->avatar);
+                \Storage::delete('public/'.$user->thumbnail);
+            }
+
+            $avatar = $request->file('avatar');
+            $originalName = $avatar->getClientOriginalName();
+            $ext = $avatar->getClientOriginalExtension();
+
+            $filename = time() . '-avatar' . '.' . $ext;
+            $fileThumbnail = time() . '-avatar-thumbnail' . '.' . $ext;
+
+            $path = $request->file('avatar')->storeAs('avatars', $filename, 'public');
+            $pathThumbnail = $request->file('avatar')->storeAs('avatars/thumbnail', $fileThumbnail, 'public');
+
+            $smallthumbnailpath = public_path('storage/avatars/thumbnail/'.$fileThumbnail);
+            $this->createThumbnail($smallthumbnailpath, 150, 93);
+
+            $user->avatar = $path;
+            $user->thumbnail = $pathThumbnail;
+        }
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
+
+        return $this->sendResponse($user, 'User updated successfully.');
     }
 
     /**
@@ -80,6 +141,55 @@ class UserController extends BaseController
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::find($id);
+        $user->delete();
+        return $this->sendResponse($user, 'User deleted successfully.');
     }
+
+    /**
+     * Retrieves the trashed users from the database.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the trashed users.
+     */
+    public function trash()
+    {
+        $users = User::onlyTrashed()->get();
+        return $this->sendResponse($users, 'Users retrieved successfully.');
+    }
+
+    /**
+     * Retrieves the trashed users from the database.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the trashed users.
+     */
+    public function restoreAll()
+    {
+        $users = User::onlyTrashed()->restore();
+        return $this->sendResponse($users, 'Users restored successfully.');
+    }
+
+    /**
+     * Restores a user from the trash.
+     *
+     * @param string $id The ID of the user to restore.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the restored user.
+     */
+    public function restore(string $id)
+    {
+        $user = User::onlyTrashed()->where('id', $id)->restore();
+        return $this->sendResponse($user, 'User restored successfully.');
+    }
+
+    /**
+     * Permanently deletes a user from the trash.
+     *
+     * @param string $id The ID of the user to delete permanently.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the deleted user.
+     */
+    public function forceDelete(string $id)
+    {
+        $user = User::onlyTrashed()->where('id', $id)->forceDelete();
+        return $this->sendResponse($user, 'User deleted permanently successfully.');
+    }
+
 }
