@@ -28,6 +28,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //users
         Route::group(['prefix' => 'users', 'as' => 'users.'], function () {
             Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('/view/{id}', [UserController::class, 'show'])->name('show');
             Route::post('/', [UserController::class, 'store'])->name('store');
             Route::put('/{id}', [UserController::class, 'update'])->name('update');
             Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
@@ -40,6 +41,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //articles
         Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
             Route::get('/', [ArticleController::class, 'index'])->name('index');
+            Route::get('/{id}', [ArticleController::class, 'show'])->name('show');
             Route::post('/', [ArticleController::class, 'store'])->name('store');
             Route::put('/{id}', [ArticleController::class, 'update'])->name('update');
             Route::delete('/{id}', [ArticleController::class, 'destroy'])->name('destroy');
@@ -52,6 +54,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //categories
         Route::group(['prefix' => 'categories', 'as' => 'categories.'], function () {
             Route::get('/', [CategoryController::class, 'index'])->name('index');
+            Route::get('/{id}', [CategoryController::class, 'show'])->name('show');
             Route::post('/', [CategoryController::class, 'store'])->name('store');
             Route::put('/{id}', [CategoryController::class, 'update'])->name('update');
             Route::delete('/{id}', [CategoryController::class, 'destroy'])->name('destroy');
@@ -64,6 +67,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //tags
         Route::group(['prefix' => 'tags', 'as' => 'tags.'], function () {
             Route::get('/', [TagController::class, 'index'])->name('index');
+            Route::get('/{id}', [TagController::class, 'show'])->name('show');
             Route::post('/', [TagController::class, 'store'])->name('store');
             Route::put('/{id}', [TagController::class, 'update'])->name('update');
             Route::delete('/{id}', [TagController::class, 'destroy'])->name('destroy');

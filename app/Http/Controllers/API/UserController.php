@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Validator;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends BaseController
 {
@@ -42,7 +44,7 @@ class UserController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', 'unique:users,email,NULL,id,deleted_at,NULL'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'avatar' => ['image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
@@ -54,7 +56,7 @@ class UserController extends BaseController
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => bcrypt($request->password),
             'role' => $request->role ?? 'user',
         ]);
 
@@ -88,6 +90,9 @@ class UserController extends BaseController
     public function show(string $id)
     {
         $user = User::find($id);
+        if ($user === null) {
+            return $this->sendError('User not found.');
+        }
         return $this->sendResponse($user, 'User retrieved successfully.');
     }
 
@@ -98,8 +103,7 @@ class UserController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-            'avatar' => ['image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'email' => 'required|string|email|max:255|unique:users,email,' . $id . ',id,deleted_at,NULL',
         ]);
 
         if($validator->fails()){
@@ -107,9 +111,16 @@ class UserController extends BaseController
         }
 
         $user = User::find($id);
+        if($user === null) {
+            return $this->sendError('User not found.');
+        }
+
         if ($request->hasFile('avatar')) {
-            if ($user->avatar && $user->thumbnail) {
+            if ($user->avatar && \Storage::exists('public/'.$user->avatar)) {
                 \Storage::delete('public/'.$user->avatar);
+            }
+
+            if ($user->thumbnail && \Storage::exists('public/'.$user->thumbnail)) {
                 \Storage::delete('public/'.$user->thumbnail);
             }
 
@@ -142,6 +153,9 @@ class UserController extends BaseController
     public function destroy(string $id)
     {
         $user = User::find($id);
+        if($user === null) {
+            return $this->sendError('User not found.');
+        }
         $user->delete();
         return $this->sendResponse($user, 'User deleted successfully.');
     }
@@ -177,6 +191,9 @@ class UserController extends BaseController
     public function restore(string $id)
     {
         $user = User::onlyTrashed()->where('id', $id)->restore();
+        if ($user === null) {
+            return $this->sendError('User not found.');
+        }
         return $this->sendResponse($user, 'User restored successfully.');
     }
 
@@ -188,7 +205,18 @@ class UserController extends BaseController
      */
     public function forceDelete(string $id)
     {
-        $user = User::onlyTrashed()->where('id', $id)->forceDelete();
+        $user = User::onlyTrashed()->find($id);
+        if ($user === null) {
+            return $this->sendError('User not found.');
+        }
+
+        if($user->avatar && \Storage::exists('public/'.$user->avatar)) {
+            \Storage::delete('public/'.$user->avatar);
+        }
+        if($user->thumbnail && \Storage::exists('public/'.$user->thumbnail)) {
+            \Storage::delete('public/'.$user->thumbnail);
+        }
+        $user->forceDelete();
         return $this->sendResponse($user, 'User deleted permanently successfully.');
     }
 

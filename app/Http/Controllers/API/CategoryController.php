@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Validator;
 
 class CategoryController extends BaseController
 {
@@ -35,19 +36,22 @@ class CategoryController extends BaseController
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:categories,name',
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $input = $request->all();
+        $input['slug'] = \Str::slug($request->input('name'));
+        $category = Category::create($input);
+        return $this->sendResponse($category, 'Category created successfully.');
     }
 
     /**
@@ -55,15 +59,8 @@ class CategoryController extends BaseController
      */
     public function show(string $id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        $category = Category::find($id);
+        return $this->sendResponse($category, 'Category retrieved successfully.');
     }
 
     /**
@@ -71,7 +68,19 @@ class CategoryController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:categories,name,' . $id,
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $category = Category::find($id);
+        $input = $request->all();
+        $inp['slug'] = \Str::slug($request->input('name'));
+        $category->update($input);
+        return $this->sendResponse($category, 'Category updated successfully.');
     }
 
     /**
@@ -79,6 +88,71 @@ class CategoryController extends BaseController
      */
     public function destroy(string $id)
     {
-        //
+        $category = Category::find($id);
+        $category->delete();
+        return $this->sendResponse($category, 'Category deleted successfully.');
+    }
+
+    /**
+     * Retrieves categories based on the provided search term.
+     *
+     * @param Request $request The HTTP request object.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the retrieved categories.
+     */
+    public function getCategories(Request $request)
+    {
+        $categories = Category::query();
+        if($request->input('name')) {
+            $categories->where('name', 'like', '%' . $request->input('name') . '%');
+        }
+        $categories = $categories->get();
+        return $this->sendResponse($categories, 'Categories retrieved successfully.');
+    }
+
+    /**
+     * Retrieves the trashed categories from the database.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the retrieved categories.
+     */
+    public function trash()
+    {
+        $categories = Category::onlyTrashed()->get();
+        return $this->sendResponse($categories, 'Categories retrieved successfully.');
+    }
+
+    /**
+     * Restores all trashed categories.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the restored categories.
+     */
+    public function restoreAll()
+    {
+        $categories = Category::onlyTrashed()->restore();
+        return $this->sendResponse($categories, 'Categories retrieved successfully.');
+    }
+
+    /**
+     * Restores a specific trashed category.
+     *
+     * @param int $id The ID of the category to restore.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the restored category.
+     */
+    public function restore($id)
+    {
+        $categories = Category::onlyTrashed()->find($id)->restore();
+        return $this->sendResponse($categories, 'Categories retrieved successfully.');
+    }
+
+    /**
+     * Permanently deletes a specific category.
+     *
+     * @param int $id The ID of the category to delete.
+     * @throws \Exception If an error occurs during the deletion process.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the deleted category and a success message.
+     */
+    public function forceDelete($id)
+    {
+        $categories = Category::onlyTrashed()->where('id', $id)->forceDelete();
+        return $this->sendResponse($categories, 'Categories retrieved successfully.');
     }
 }
