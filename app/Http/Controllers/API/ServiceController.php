@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Models\Service;
+use Validator;
 
 class ServiceController extends BaseController
 {
@@ -36,19 +37,29 @@ class ServiceController extends BaseController
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'service_name' => 'required|string|max:255',
+            'cover_image' => 'required',
+            'description' => 'required|string',
+            'icon' => 'required',
+        ]);
+
+        if($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $input = $request->all();
+        if(isset($input['cover_image'])) {
+            $upload = $this->uploadImageWithThumbnail($input['cover_image'], $input['service_name'], 'services/', 150, 93);
+            $input['cover_image'] = $upload['image'];
+            $input['thumbnail'] = $upload['thumbnail'];
+        }
+        $services = Service::create($input);
+        return $this->sendResponse($services, 'Service created successfully.');
     }
 
     /**
@@ -56,15 +67,12 @@ class ServiceController extends BaseController
      */
     public function show(string $id)
     {
-        //
-    }
+        $service = Service::find($id);
+        if(is_null($service)) {
+            return $this->sendError('Service not found.');
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        return $this->sendResponse($service, 'Service retrieved successfully.');
     }
 
     /**
@@ -72,7 +80,35 @@ class ServiceController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'service_name' => 'required|string|max:255',
+            'cover_image' => 'required',
+            'description' => 'required|string',
+            'icon' => 'required',
+        ]);
+
+        if($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $service = Service::find($id);
+        if(is_null($service)) {
+            return $this->sendError('Service not found.');
+        }
+        $input = $request->all();
+        if(isset($input['cover_image'])) {
+            if (!empty($service->cover_image)) {
+                $this->removeFiles($service->cover_image);
+            }
+            if(!empty($service->thumbnail)) {
+                $this->removeFiles($service->thumbnail);
+            }
+            $upload = $this->uploadImageWithThumbnail($input['cover_image'], $input['service_name'], 'services/', 150, 93);
+            $input['cover_image'] = $upload['image'];
+            $input['thumbnail'] = $upload['thumbnail'];
+        }
+        $service->update($input);
+        return $this->sendResponse($services, 'Service updated successfully.');
     }
 
     /**
@@ -80,6 +116,68 @@ class ServiceController extends BaseController
      */
     public function destroy(string $id)
     {
-        //
+        $service = Service::find($id);
+        if(is_null($service)) {
+            return $this->sendError('Service not found.');
+        }
+        $service->delete();
+        return $this->sendResponse($service, 'Service deleted successfully.');
+    }
+
+    /**
+     * Retrieves all trashed services from the database and sends a JSON response
+     * containing the services and a success message.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the trashed services and a success message.
+     */
+    public function trash()
+    {
+        $services = Service::onlyTrashed()->get();
+        return $this->sendResponse($services, 'Services retrieved successfully.');
+    }
+
+    /**
+     * Restores all trashed services.
+     *
+     * @throws \Exception If there is an issue restoring the services.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the restored services and a success message.
+     */
+    public function restoreAll()
+    {
+        $services = Service::onlyTrashed()->restore();
+        return $this->sendResponse($services, 'Services restored successfully.');
+    }
+
+    /**
+     * Restores a service with the given ID.
+     *
+     * @param string $id The ID of the service to restore.
+     * @throws \Exception If the service is not found.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the restored service and a success message.
+     */
+    public function restore(string $id)
+    {
+        $services = Service::onlyTrashed()->find($id);
+        if(is_null($services)) {
+            return $this->sendError('Service not found.');
+        }
+        $services->restore();
+        return $this->sendResponse($services, 'Service restored successfully.');
+    }
+
+    /**
+     * Permanently deletes a service with the given ID.
+     *
+     * @param string $id The ID of the service to delete.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the deleted service and a success message.
+     */
+    public function forceDelete(string $id)
+    {
+        $services = Service::onlyTrashed()->find($id);
+        if(is_null($services)) {
+            return $this->sendError('Service not found.');
+        }
+        $services->forceDelete();
+        return $this->sendResponse($services, 'Service deleted successfully.');
     }
 }

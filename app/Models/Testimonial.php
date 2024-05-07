@@ -19,6 +19,8 @@ class Testimonial extends Model
         'project_id',
         'customer_name',
         'message',
+        'avatar',
+        'thumbnail',
     ];
 
     /**

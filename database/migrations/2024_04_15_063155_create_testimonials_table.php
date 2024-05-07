@@ -16,6 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('project_id');
             $table->string('customer_name', 100);
             $table->string('message');
+            $table->string('avatar')->nullable();
+            $table->string('thumbnail')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

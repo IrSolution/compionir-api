@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Models\Testimonial;
+use Validator;
 
 class TestimonialController extends BaseController
 {
@@ -35,19 +36,28 @@ class TestimonialController extends BaseController
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required',
+            'customer_name' => 'required|string|max:255',
+            'message' => 'required',
+        ]);
+
+        if($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $input = $request->all();
+        if(isset($input['avatar'])) {
+            $upload = $this->uploadImageWithThumbnail($input['avatar'], $input['customer_name'], 'testimonials/', 150, 93);
+            $input['avatar'] = $upload['image'];
+            $input['thumbnail'] = $upload['thumbnail'];
+        }
+        $testimonilas = Testimonial::create($input);
+        return $this->sendResponse($testimonilas, 'Testimonial created successfully.');
     }
 
     /**
@@ -55,15 +65,12 @@ class TestimonialController extends BaseController
      */
     public function show(string $id)
     {
-        //
-    }
+        $testimonial = Testimonial::find($id);
+        if(is_null($testimonial)) {
+            return $this->sendError('Testimonial not found.');
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        return $this->sendResponse($testimonial, 'Testimonial retrieved successfully.');
     }
 
     /**
@@ -71,7 +78,33 @@ class TestimonialController extends BaseController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required',
+            'customer_name' => 'required|string|max:255',
+            'message' => 'required',
+        ]);
+
+        if($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+
+        $testimonial = Testimonial::find($id);
+        if(is_null($testimonial)) {
+            return $this->sendError('Testimonial not found.');
+        }
+        $input = $request->all();
+        if(isset($input['avatar'])) {
+            if(isset($testimonial->avatar)) {
+                $this->removeFiles($testimonial->avatar);
+                $this->removeFiles($testimonial->thumbnail);
+            }
+            $upload = $this->uploadImageWithThumbnail($input['avatar'], $input['customer_name'], 'testimonials/', 150, 93);
+            $input['avatar'] = $upload['image'];
+            $input['thumbnail'] = $upload['thumbnail'];
+        }
+
+        $testimonial->update($input);
+        return $this->sendResponse($testimonial, 'Testimonial updated successfully.');
     }
 
     /**
@@ -79,6 +112,79 @@ class TestimonialController extends BaseController
      */
     public function destroy(string $id)
     {
-        //
+        $testimonial = Testimonial::find($id);
+        if(is_null($testimonial)) {
+            return $this->sendError('Testimonial not found.');
+        }
+
+        $testimonial->delete();
+        return $this->sendResponse($testimonial, 'Testimonial deleted successfully.');
+    }
+
+    /**
+     * Retrieves all the soft deleted testimonials from the database.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the testimonials and a success message.
+     */
+    public function trash()
+    {
+        $testimonilas = Testimonial::onlyTrashed()->get();
+        return $this->sendResponse($testimonilas, 'Testimonial retrieved successfully.');
+    }
+
+    /**
+     * Restores all soft deleted testimonials from the database.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the restored testimonials and a success message.
+     */
+    public function restoreAll()
+    {
+        $testimonilas = Testimonial::onlyTrashed()->restore();
+        return $this->sendResponse($testimonilas, 'Testimonial retrieved successfully.');
+    }
+
+    /**
+     * Restores a soft deleted testimonial from the database.
+     *
+     * @param int $id The ID of the testimonial to restore.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the restored testimonial and a success message.
+     */
+    public function restore($id)
+    {
+        $testimonilas = Testimonial::onlyTrashed()->find($id);
+        if(is_null($testimonilas)) {
+            return $this->sendError('Testimonial not found.');
+        }
+
+        $testimonilas->restore();
+        return $this->sendResponse($testimonilas, 'Testimonial retrieved successfully.');
+    }
+
+    /**
+     * Deletes all soft deleted testimonials permanently from the database.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the deleted testimonials and a success message.
+     */
+    public function forceDeleteAll()
+    {
+        $testimonilas = Testimonial::onlyTrashed()->forceDelete();
+        return $this->sendResponse($testimonilas, 'Testimonial deleted permanently successfully.');
+    }
+
+    /**
+     * Deletes a testimonial permanently from the database.
+     *
+     * @param int $id The ID of the testimonial to be deleted.
+     * @return \Illuminate\Http\JsonResponse The JSON response containing the deleted testimonial and a success message.
+     */
+    public function forceDelete($id)
+    {
+        $testimonilas = Testimonial::onlyTrashed()->find($id);
+        if(is_null($testimonilas)) {
+            return $this->sendError('Testimonial not found.');
+        }
+
+        $testimonilas->forceDelete();
+        return $this->sendResponse($testimonilas, 'Testimonial deleted permanently successfully.');
     }
 }

@@ -41,7 +41,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //articles
         Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
             Route::get('/', [ArticleController::class, 'index'])->name('index');
-            Route::get('/{id}', [ArticleController::class, 'show'])->name('show');
+            Route::get('/view/{id}', [ArticleController::class, 'show'])->name('show');
             Route::post('/', [ArticleController::class, 'store'])->name('store');
             Route::put('/{id}', [ArticleController::class, 'update'])->name('update');
             Route::delete('/{id}', [ArticleController::class, 'destroy'])->name('destroy');
@@ -54,7 +54,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //categories
         Route::group(['prefix' => 'categories', 'as' => 'categories.'], function () {
             Route::get('/', [CategoryController::class, 'index'])->name('index');
-            Route::get('/{id}', [CategoryController::class, 'show'])->name('show');
+            Route::get('/view/{id}', [CategoryController::class, 'show'])->name('show');
             Route::post('/', [CategoryController::class, 'store'])->name('store');
             Route::put('/{id}', [CategoryController::class, 'update'])->name('update');
             Route::delete('/{id}', [CategoryController::class, 'destroy'])->name('destroy');
@@ -67,7 +67,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //tags
         Route::group(['prefix' => 'tags', 'as' => 'tags.'], function () {
             Route::get('/', [TagController::class, 'index'])->name('index');
-            Route::get('/{id}', [TagController::class, 'show'])->name('show');
+            Route::get('/view/{id}', [TagController::class, 'show'])->name('show');
             Route::post('/', [TagController::class, 'store'])->name('store');
             Route::put('/{id}', [TagController::class, 'update'])->name('update');
             Route::delete('/{id}', [TagController::class, 'destroy'])->name('destroy');
@@ -80,6 +80,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //contacts
         Route::group(['prefix' => 'contacts', 'as' => 'contacts.'], function () {
             Route::get('/', [ContactController::class, 'index'])->name('index');
+            Route::get('/view/{id}', [ContactController::class, 'show'])->name('show');
             Route::delete('/{id}', [ContactController::class, 'destroy'])->name('destroy');
             Route::get('/trash', [ContactController::class, 'trash'])->name('trash');
             Route::get('/restore-all', [ContactController::class, 'restoreAll'])->name('restoreAll');
@@ -90,6 +91,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //projects
         Route::group(['prefix' => 'projects', 'as' => 'projects.'], function () {
             Route::get('/', [ProjectController::class, 'index'])->name('index');
+            Route::get('view/{id}', [ProjectController::class, 'show'])->name('show');
             Route::post('/', [ProjectController::class, 'store'])->name('store');
             Route::put('/{id}', [ProjectController::class, 'update'])->name('update');
             Route::delete('/{id}', [ProjectController::class, 'destroy'])->name('destroy');
@@ -102,6 +104,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //services
         Route::group(['prefix' => 'services', 'as' => 'services.'], function () {
             Route::get('/', [ServiceController::class, 'index'])->name('index');
+            Route::get('/view/{id}', [ServiceController::class, 'show'])->name('show');
             Route::post('/', [ServiceController::class, 'store'])->name('store');
             Route::put('/{id}', [ServiceController::class, 'update'])->name('update');
             Route::delete('/{id}', [ServiceController::class, 'destroy'])->name('destroy');
@@ -114,6 +117,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //teams
         Route::group(['prefix' => 'teams', 'as' => 'teams.'], function () {
             Route::get('/', [TeamController::class, 'index'])->name('index');
+            Route::get('/view/{id}', [TeamController::class, 'show'])->name('show');
             Route::post('/', [TeamController::class, 'store'])->name('store');
             Route::put('/{id}', [TeamController::class, 'update'])->name('update');
             Route::delete('/{id}', [TeamController::class, 'destroy'])->name('destroy');
@@ -126,6 +130,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         //testimonials
         Route::group(['prefix' => 'testimonials', 'as' => 'testimonials.'], function () {
             Route::get('/', [TestimonialController::class, 'index'])->name('index');
+            Route::get('/view/{id}', [TestimonialController::class, 'show'])->name('show');
             Route::post('/', [TestimonialController::class, 'store'])->name('store');
             Route::put('/{id}', [TestimonialController::class, 'update'])->name('update');
             Route::delete('/{id}', [TestimonialController::class, 'destroy'])->name('destroy');
@@ -144,4 +149,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/password/change', [ProfileController::class, 'passwordChange'])->name('password.change');
     });
 
+    // logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

@@ -52,4 +52,16 @@ class AuthController extends BaseController
             return $this->sendError('Unauthorised.', ['error' => 'Unauthorised']);
         }
     }
+
+    /**
+     * Logout the authenticated user and delete all their tokens.
+     *
+     * @return \Illuminate\Http\JsonResponse The JSON response indicating successful logout.
+     */
+    public function logout()
+    {
+        \Auth::user()->tokens()->delete();
+        return $this->sendResponse([], 'User logout successfully.');
+    }
+
 }

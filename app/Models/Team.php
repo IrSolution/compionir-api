@@ -20,6 +20,8 @@ class Team extends Model
         'position',
         'education',
         'certification',
+        'avatar',
+        'thumbnail',
     ];
 
     /**

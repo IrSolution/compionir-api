@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('position', 100);
             $table->string('education')->nullable();
             $table->string('certification')->nullable();
+            $table->string('avatar')->nullable();
+            $table->string('thumbnail')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

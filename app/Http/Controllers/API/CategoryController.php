@@ -60,6 +60,9 @@ class CategoryController extends BaseController
     public function show(string $id)
     {
         $category = Category::find($id);
+        if(is_null($category)){
+            return $this->sendError('Category not found.');
+        }
         return $this->sendResponse($category, 'Category retrieved successfully.');
     }
 
@@ -77,6 +80,9 @@ class CategoryController extends BaseController
         }
 
         $category = Category::find($id);
+        if(is_null($category)){
+            return $this->sendError('Category not found.');
+        }
         $input = $request->all();
         $inp['slug'] = \Str::slug($request->input('name'));
         $category->update($input);
@@ -89,6 +95,9 @@ class CategoryController extends BaseController
     public function destroy(string $id)
     {
         $category = Category::find($id);
+        if(is_null($category)){
+            return $this->sendError('Category not found.');
+        }
         $category->delete();
         return $this->sendResponse($category, 'Category deleted successfully.');
     }
@@ -139,7 +148,11 @@ class CategoryController extends BaseController
      */
     public function restore($id)
     {
-        $categories = Category::onlyTrashed()->find($id)->restore();
+        $categories = Category::onlyTrashed()->find($id);
+        if(is_null($categories)) {
+            return $this->sendError('Category not found.');
+        }
+        $categories->restore();
         return $this->sendResponse($categories, 'Categories retrieved successfully.');
     }
 
@@ -152,7 +165,11 @@ class CategoryController extends BaseController
      */
     public function forceDelete($id)
     {
-        $categories = Category::onlyTrashed()->where('id', $id)->forceDelete();
+        $categories = Category::onlyTrashed()->where('id', $id);
+        if(is_null($categories)) {
+            return $this->sendError('Category not found.');
+        }
+        $categories->forceDelete();
         return $this->sendResponse($categories, 'Categories retrieved successfully.');
     }
 }

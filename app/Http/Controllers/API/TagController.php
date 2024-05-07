@@ -57,6 +57,9 @@ class TagController extends BaseController
     public function show(string $id)
     {
         $tag = Tag::find($id);
+        if(is_null($tag)) {
+            return $this->sendError('Tag not found.');
+        }
         return $this->sendResponse($tag, 'Tag retrieved successfully.');
     }
 
@@ -74,6 +77,9 @@ class TagController extends BaseController
         }
 
         $tag = Tag::find($id);
+        if(is_null($tag)) {
+            return $this->sendError('Tag not found.');
+        }
         $tag->update($request->all());
 
         return $this->sendResponse($tag, 'Tag updated successfully.');
@@ -85,6 +91,9 @@ class TagController extends BaseController
     public function destroy(string $id)
     {
         $tag = Tag::find($id);
+        if(is_null($tag)) {
+            return $this->sendError('Tag not found.');
+        }
         $tag->delete();
         return $this->sendResponse($tag, 'Tag deleted successfully.');
     }
@@ -136,8 +145,12 @@ class TagController extends BaseController
      */
     public function restore(string $id)
     {
-        $tags = Tag::onlyTrashed()->where('id', $id)->restore();
-        return $this->sendResponse($tags, 'Tags retrieved successfully.');
+        $tag = Tag::onlyTrashed()->find($id);
+        if(is_null($article)) {
+            return $this->sendError('Tag not found.');
+        }
+        $tag->restore();
+        return $this->sendResponse($tag, 'Tag retrieved successfully.');
     }
 
     /**
@@ -148,7 +161,11 @@ class TagController extends BaseController
      */
     public function forceDelete(string $id)
     {
-        $tags = Tag::onlyTrashed()->where('id', $id)->forceDelete();
-        return $this->sendResponse($tags, 'Tags retrieved successfully.');
+        $tag = Tag::onlyTrashed()->find($id);
+        if(is_null($article)) {
+            return $this->sendError('Tag not found.');
+        }
+        $tag->forceDelete();
+        return $this->sendResponse($tag, 'Tags retrieved successfully.');
     }
 }
