@@ -126,7 +126,7 @@ class TeamController extends BaseController
     public function trash()
     {
         $teams = Team::onlyTrashed()->get();
-        return $this->sendResponse($tags, 'Teams retrieved successfully.');
+        return $this->sendResponse($teams, 'Teams retrieved successfully.');
     }
 
     /**
@@ -165,9 +165,16 @@ class TeamController extends BaseController
      */
     public function forceDelete($id)
     {
-        $team = Team::onlyTrashed()->where('id', $id);
+        $team = Team::onlyTrashed()->find($id);
         if ($team === null) {
             return $this->sendError('Team not found.');
+        }
+
+        if ($team->avatar) {
+            $this->removeFiles($team->avatar);
+        }
+        if($team->thumbnail) {
+            $this->removeFiles($team->thumbnail);
         }
 
         $team->forceDelete();

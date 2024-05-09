@@ -109,12 +109,12 @@ class ContactController extends BaseController
      */
     public function restore(string $id)
     {
-        $contacts = Contact::onlyTrashed()->where('id', $id);
-        if($contacts === null) {
+        $contact = Contact::onlyTrashed()->find($id);
+        if($contact === null) {
             return $this->sendError('Contact not found.');
         }
-        $contacts->restore();
-        return $this->sendResponse($contacts, 'Contacts retrieved successfully.');
+        $contact->restore();
+        return $this->sendResponse($contact, 'Contact retrieved successfully.');
     }
 
     /**
@@ -125,7 +125,7 @@ class ContactController extends BaseController
      */
      public function forceDelete(string $id)
     {
-        $contacts = Contact::onlyTrashed()->where('id', $id);
+        $contacts = Contact::onlyTrashed()->find($id);
         if($contacts === null) {
             return $this->sendError('Contact not found.');
         }

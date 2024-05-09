@@ -94,7 +94,7 @@ class TestimonialController extends BaseController
         }
         $input = $request->all();
         if(isset($input['avatar'])) {
-            if(isset($testimonial->avatar)) {
+            if($testimonial->avatar) {
                 $this->removeFiles($testimonial->avatar);
                 $this->removeFiles($testimonial->thumbnail);
             }
@@ -128,8 +128,8 @@ class TestimonialController extends BaseController
      */
     public function trash()
     {
-        $testimonilas = Testimonial::onlyTrashed()->get();
-        return $this->sendResponse($testimonilas, 'Testimonial retrieved successfully.');
+        $testimonials = Testimonial::onlyTrashed()->get();
+        return $this->sendResponse($testimonials, 'Testimonials retrieved successfully.');
     }
 
     /**
@@ -139,8 +139,8 @@ class TestimonialController extends BaseController
      */
     public function restoreAll()
     {
-        $testimonilas = Testimonial::onlyTrashed()->restore();
-        return $this->sendResponse($testimonilas, 'Testimonial retrieved successfully.');
+        $testimonials = Testimonial::onlyTrashed()->restore();
+        return $this->sendResponse($testimonials, 'Testimonials retrieved successfully.');
     }
 
     /**
@@ -151,13 +151,13 @@ class TestimonialController extends BaseController
      */
     public function restore($id)
     {
-        $testimonilas = Testimonial::onlyTrashed()->find($id);
-        if(is_null($testimonilas)) {
+        $testimonial = Testimonial::onlyTrashed()->find($id);
+        if(is_null($testimonial)) {
             return $this->sendError('Testimonial not found.');
         }
 
-        $testimonilas->restore();
-        return $this->sendResponse($testimonilas, 'Testimonial retrieved successfully.');
+        $testimonial->restore();
+        return $this->sendResponse($testimonial, 'Testimonial retrieved successfully.');
     }
 
     /**
@@ -167,8 +167,8 @@ class TestimonialController extends BaseController
      */
     public function forceDeleteAll()
     {
-        $testimonilas = Testimonial::onlyTrashed()->forceDelete();
-        return $this->sendResponse($testimonilas, 'Testimonial deleted permanently successfully.');
+        $testimonials = Testimonial::onlyTrashed()->forceDelete();
+        return $this->sendResponse($testimonials, 'Testimonials deleted permanently successfully.');
     }
 
     /**
@@ -179,12 +179,16 @@ class TestimonialController extends BaseController
      */
     public function forceDelete($id)
     {
-        $testimonilas = Testimonial::onlyTrashed()->find($id);
-        if(is_null($testimonilas)) {
+        $testimonial = Testimonial::onlyTrashed()->find($id);
+        if(is_null($testimonial)) {
             return $this->sendError('Testimonial not found.');
         }
+        if($testimonial->avatar) {
+            $this->removeFiles($testimonial->avatar);
+            $this->removeFiles($testimonial->thumbnail);
+        }
 
-        $testimonilas->forceDelete();
-        return $this->sendResponse($testimonilas, 'Testimonial deleted permanently successfully.');
+        $testimonial->forceDelete();
+        return $this->sendResponse($testimonial, 'Testimonial deleted permanently successfully.');
     }
 }

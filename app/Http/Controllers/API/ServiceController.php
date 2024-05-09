@@ -54,7 +54,7 @@ class ServiceController extends BaseController
 
         $input = $request->all();
         if(isset($input['cover_image'])) {
-            $upload = $this->uploadImageWithThumbnail($input['cover_image'], $input['service_name'], 'services/', 150, 93);
+            $upload = $this->uploadImageWithThumbnail($input['cover_image'], $input['service_name'], 'services', 150, 93);
             $input['cover_image'] = $upload['image'];
             $input['thumbnail'] = $upload['thumbnail'];
         }
@@ -82,7 +82,6 @@ class ServiceController extends BaseController
     {
         $validator = Validator::make($request->all(), [
             'service_name' => 'required|string|max:255',
-            'cover_image' => 'required',
             'description' => 'required|string',
             'icon' => 'required',
         ]);
@@ -108,7 +107,7 @@ class ServiceController extends BaseController
             $input['thumbnail'] = $upload['thumbnail'];
         }
         $service->update($input);
-        return $this->sendResponse($services, 'Service updated successfully.');
+        return $this->sendResponse($service, 'Service updated successfully.');
     }
 
     /**
@@ -173,11 +172,17 @@ class ServiceController extends BaseController
      */
     public function forceDelete(string $id)
     {
-        $services = Service::onlyTrashed()->find($id);
-        if(is_null($services)) {
+        $service = Service::onlyTrashed()->find($id);
+        if(is_null($service)) {
             return $this->sendError('Service not found.');
         }
-        $services->forceDelete();
-        return $this->sendResponse($services, 'Service deleted successfully.');
+        if ($service->cover_image) {
+            $this->removeFiles($service->cover_image);
+        }
+        if($service->thumbnail) {
+            $this->removeFiles($service->thumbnail);
+        }
+        $service->forceDelete();
+        return $this->sendResponse($service, 'Service deleted successfully.');
     }
 }
